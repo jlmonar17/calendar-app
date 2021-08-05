@@ -4,6 +4,7 @@ import { Navbar } from "../ui/Navbar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { CalendarEvent } from "./CalendarEvent";
 import { useState } from "react";
+import { CalendarModal } from "./CalendarModal";
 // Uncomment three lines below if you want translate text of calendar to Spanish
 // import { messages } from "../../helpers/calendar-messages-es";
 // import "moment/locale/es";
@@ -84,6 +85,8 @@ export const CalendarScreen = () => {
                     event: CalendarEvent,
                 }}
             />
+
+            <CalendarModal />
         </div>
     );
 };
