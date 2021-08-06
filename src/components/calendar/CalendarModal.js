@@ -2,6 +2,7 @@ import Modal from "react-modal";
 import DateTimePicker from "react-datetime-picker";
 import moment from "moment";
 import { useState } from "react";
+import Swal from "sweetalert2";
 
 const customStyles = {
     content: {
@@ -23,19 +24,66 @@ const nowPlus1 = now.clone().add(1, "hours");
 export const CalendarModal = () => {
     const [startDate, setStartDate] = useState(now.toDate());
     const [endDate, setEndDate] = useState(nowPlus1.toDate());
+    const [validTitle, setValidTitle] = useState(true);
+
+    const [formValues, setFormValues] = useState({
+        title: "Event",
+        notes: "Notes",
+        start: now.toDate(),
+        end: nowPlus1.toDate(),
+    });
+
+    const { title, notes, start, end } = formValues;
+
+    const handleInputChange = ({ target }) => {
+        setFormValues({
+            ...formValues,
+            [target.name]: target.value,
+        });
+    };
+
+    const handleSubmitForm = (e) => {
+        e.preventDefault();
+
+        const momentStart = moment(start);
+        const momentEnd = moment(end);
+
+        if (momentStart.isSameOrAfter(momentEnd)) {
+            return Swal.fire(
+                "Error",
+                "End date should be greater than Start date",
+                "error"
+            );
+        }
+
+        if (title.trim().length < 2) {
+            return setValidTitle(false);
+        }
+
+        setValidTitle(true);
+        closeModal();
+    };
 
     const closeModal = () => {
-        //
+        // TODO: should close modal
     };
 
     const handleStartDateChange = (e) => {
         setStartDate(e);
-        console.log(e);
+
+        setFormValues({
+            ...formValues,
+            start: e,
+        });
     };
 
     const handleEndDateChange = (e) => {
         setEndDate(e);
-        console.log(e);
+
+        setFormValues({
+            ...formValues,
+            end: e,
+        });
     };
 
     return (
@@ -49,12 +97,14 @@ export const CalendarModal = () => {
         >
             <h1>New event</h1>
             <hr />
-            <form className="container">
+            <form className="container" onSubmit={handleSubmitForm}>
                 <div className="form-group">
                     <label>Start date and time</label>
                     <DateTimePicker
                         onChange={handleStartDateChange}
                         className="form-control"
+                        format="y-MM-dd h:mm:ss a"
+                        amPmAriaLabel="Select AM/PM"
                         value={startDate}
                     />
                 </div>
@@ -64,6 +114,8 @@ export const CalendarModal = () => {
                     <DateTimePicker
                         onChange={handleEndDateChange}
                         className="form-control"
+                        format="y-MM-dd h:mm:ss a"
+                        amPmAriaLabel="Select AM/PM"
                         minDate={startDate}
                         value={endDate}
                     />
@@ -74,10 +126,14 @@ export const CalendarModal = () => {
                     <label>Title and notes</label>
                     <input
                         type="text"
-                        className="form-control"
+                        className={`form-control ${
+                            !validTitle && "is-invalid"
+                        }`}
                         placeholder="Title event"
                         name="title"
                         autoComplete="off"
+                        value={title}
+                        onChange={handleInputChange}
                     />
                     <small id="emailHelp" className="form-text text-muted">
                         Short description
@@ -91,6 +147,8 @@ export const CalendarModal = () => {
                         placeholder="Notes"
                         rows="5"
                         name="notes"
+                        value={notes}
+                        onChange={handleInputChange}
                     ></textarea>
                     <small id="emailHelp" className="form-text text-muted">
                         Additional information
