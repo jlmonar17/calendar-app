@@ -5,6 +5,10 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import { CalendarEvent } from "./CalendarEvent";
 import { useState } from "react";
 import { CalendarModal } from "./CalendarModal";
+import { useDispatch } from "react-redux";
+import { uiOpenModal } from "../../actions/ui";
+import { eventSetActive } from "../../actions/events";
+import { AddNewFab } from "../ui/AddNewFab";
 // Uncomment three lines below if you want translate text of calendar to Spanish
 // import { messages } from "../../helpers/calendar-messages-es";
 // import "moment/locale/es";
@@ -33,18 +37,21 @@ const events = [
 ];
 
 export const CalendarScreen = () => {
+    const dispatch = useDispatch();
+
     const [lastView, setLastView] = useState(
         localStorage.getItem("lastView") || "month"
     );
 
     // It fires when a node event is double clicked
     const onDoubleClick = (e) => {
-        console.log(e);
+        dispatch(uiOpenModal());
     };
 
     // It fires when a node event is selected
     const onSelectEvent = (e) => {
         console.log(e);
+        dispatch(eventSetActive(e));
     };
 
     // It fires when a view calendar changes (month, week, day, agenda)
@@ -86,6 +93,7 @@ export const CalendarScreen = () => {
                 }}
             />
 
+            <AddNewFab />
             <CalendarModal />
         </div>
     );
