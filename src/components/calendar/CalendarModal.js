@@ -1,11 +1,15 @@
 import Modal from "react-modal";
 import DateTimePicker from "react-datetime-picker";
 import moment from "moment";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import { useDispatch, useSelector } from "react-redux";
 import { uiCloseModal } from "../../actions/ui";
-import { eventAddNew } from "../../actions/events";
+import {
+    eventAddNew,
+    eventClearActiveEvent,
+    eventUpdated,
+} from "../../actions/events";
 
 const customStyles = {
     content: {
@@ -24,21 +28,22 @@ Modal.setAppElement("#root");
 const now = moment().minutes(0).seconds(0).add(1, "hours");
 const nowPlus1 = now.clone().add(1, "hours");
 
+const initEvent = {
+    title: "",
+    notes: "",
+    start: now.toDate(),
+    end: nowPlus1.toDate(),
+};
+
 export const CalendarModal = () => {
     const { modalOpen } = useSelector((state) => state.ui);
+    const { activeEvent } = useSelector((state) => state.calendar);
 
     const dispatch = useDispatch();
 
-    const [startDate, setStartDate] = useState(now.toDate());
-    const [endDate, setEndDate] = useState(nowPlus1.toDate());
     const [validTitle, setValidTitle] = useState(true);
 
-    const [formValues, setFormValues] = useState({
-        title: "Event",
-        notes: "Notes",
-        start: now.toDate(),
-        end: nowPlus1.toDate(),
-    });
+    const [formValues, setFormValues] = useState(initEvent);
 
     const { title, notes, start, end } = formValues;
 
@@ -67,28 +72,47 @@ export const CalendarModal = () => {
             return setValidTitle(false);
         }
 
-        dispatch(
-            eventAddNew({
-                ...formValues,
-                id: new Date().getTime(),
-                user: {
-                    _id: "abc",
-                    name: "Luis",
-                },
-            })
-        );
+        // If activeEvent exists, it means that an event was loaded in modal, therefore, we
+        // update the event
+        if (activeEvent) {
+            dispatch(eventUpdated(formValues));
+        } else {
+            dispatch(
+                eventAddNew({
+                    ...formValues,
+                    id: new Date().getTime(),
+                    user: {
+                        _id: "abc",
+                        name: "Luis",
+                    },
+                })
+            );
+        }
 
         setValidTitle(true);
         closeModal();
     };
 
+    useEffect(() => {
+        // It will set formValues only if there is some active event
+        if (activeEvent) {
+            setFormValues(activeEvent);
+        } else {
+            setFormValues(initEvent);
+        }
+    }, [activeEvent]);
+
     const closeModal = () => {
         dispatch(uiCloseModal());
+
+        // Set active event with null value in Redux store
+        dispatch(eventClearActiveEvent());
+
+        // Reset form values
+        setFormValues(initEvent);
     };
 
     const handleStartDateChange = (e) => {
-        setStartDate(e);
-
         setFormValues({
             ...formValues,
             start: e,
@@ -96,8 +120,6 @@ export const CalendarModal = () => {
     };
 
     const handleEndDateChange = (e) => {
-        setEndDate(e);
-
         setFormValues({
             ...formValues,
             end: e,
@@ -113,7 +135,7 @@ export const CalendarModal = () => {
             style={customStyles}
             closeTimeoutMS={200}
         >
-            <h1>New event</h1>
+            <h1>{activeEvent ? "Edit event" : "New event"}</h1>
             <hr />
             <form className="container" onSubmit={handleSubmitForm}>
                 <div className="form-group">
@@ -123,7 +145,7 @@ export const CalendarModal = () => {
                         className="form-control"
                         format="y-MM-dd h:mm:ss a"
                         amPmAriaLabel="Select AM/PM"
-                        value={startDate}
+                        value={start}
                     />
                 </div>
 
@@ -134,8 +156,8 @@ export const CalendarModal = () => {
                         className="form-control"
                         format="y-MM-dd h:mm:ss a"
                         amPmAriaLabel="Select AM/PM"
-                        minDate={startDate}
-                        value={endDate}
+                        minDate={start}
+                        value={end}
                     />
                 </div>
 
