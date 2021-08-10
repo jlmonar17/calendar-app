@@ -1,4 +1,4 @@
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { eventDeleted } from "../../actions/events";
 
 export const DeleteEventFab = () => {
