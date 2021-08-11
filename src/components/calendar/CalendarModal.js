@@ -8,7 +8,7 @@ import { uiCloseModal } from "../../actions/ui";
 import {
     eventClearActiveEvent,
     eventStartAddNew,
-    eventUpdated,
+    eventStartUpdate,
 } from "../../actions/events";
 
 const customStyles = {
@@ -75,7 +75,7 @@ export const CalendarModal = () => {
         // If activeEvent exists, it means that an event was loaded in modal, therefore, we
         // update the event
         if (activeEvent) {
-            dispatch(eventUpdated(formValues));
+            dispatch(eventStartUpdate(formValues));
         } else {
             dispatch(eventStartAddNew(formValues));
         }
