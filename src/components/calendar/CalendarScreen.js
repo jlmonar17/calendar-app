@@ -7,9 +7,14 @@ import { useState } from "react";
 import { CalendarModal } from "./CalendarModal";
 import { useDispatch, useSelector } from "react-redux";
 import { uiOpenModal } from "../../actions/ui";
-import { eventClearActiveEvent, eventSetActive } from "../../actions/events";
+import {
+    eventClearActiveEvent,
+    eventSetActive,
+    eventStartLoading,
+} from "../../actions/events";
 import { AddNewFab } from "../ui/AddNewFab";
 import { DeleteEventFab } from "../ui/DeleteEventFab";
+import { useEffect } from "react";
 // Uncomment three lines below if you want translate text of calendar to Spanish
 // import { messages } from "../../helpers/calendar-messages-es";
 // import "moment/locale/es";
@@ -26,6 +31,8 @@ const localizer = momentLocalizer(moment);
 export const CalendarScreen = () => {
     const dispatch = useDispatch();
 
+    const { uid } = useSelector((state) => state.auth);
+
     // Getting events from Redux store
     const { events, activeEvent } = useSelector((state) => state.calendar);
 
@@ -40,7 +47,6 @@ export const CalendarScreen = () => {
 
     // It fires when a node event is selected
     const onSelectEvent = (e) => {
-        console.log(e);
         dispatch(eventSetActive(e));
     };
 
@@ -56,9 +62,14 @@ export const CalendarScreen = () => {
         setLastView(e);
     };
 
+    useEffect(() => {
+        dispatch(eventStartLoading());
+    }, [dispatch]);
+
     const eventStyleGetter = (event, start, end, isSelected) => {
+        // Using a different backgroundColor color for event, if logged user is the owner of the event
         const style = {
-            backgroundColor: "#367CF7",
+            backgroundColor: uid === event.user._id ? "#367CF7" : "#464646",
             broderRadius: "0px",
             opacity: 0.8,
             display: "block",
