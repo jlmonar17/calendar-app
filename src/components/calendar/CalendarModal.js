@@ -22,8 +22,10 @@ const customStyles = {
     },
 };
 
-// Make sure to bind modal to your appElement
-Modal.setAppElement("#root");
+if (process.env.NODE_ENV !== "test") {
+    // Make sure to bind modal to your appElement
+    Modal.setAppElement("#root");
+}
 
 const now = moment().minutes(0).seconds(0).add(1, "hours");
 const nowPlus1 = now.clone().add(1, "hours");
