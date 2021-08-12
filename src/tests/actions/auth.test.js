@@ -1,8 +1,9 @@
 import configureStore from "redux-mock-store";
 import thunk from "redux-thunk";
 import Swal from "sweetalert2";
-import { startLogin } from "../../actions/auth";
+import { startChecking, startLogin, startRegister } from "../../actions/auth";
 import { types } from "../../types/types";
+import * as fetchModule from "../../helpers/fetch";
 
 const middlewares = [thunk];
 const mockStore = configureStore(middlewares);
@@ -68,6 +69,72 @@ describe("Tests for Authentication actions", () => {
             "Error",
             "User doesn't exist with provided email",
             "error"
+        );
+    });
+
+    test("Should dispatch correctly startRegister", async () => {
+        // We simulate te return of fetch function using a mock function return
+        fetchModule.fetchWithoutToken = jest.fn(() => ({
+            json() {
+                return {
+                    ok: true,
+                    uid: "123",
+                    name: "José",
+                    token: "ABC123DEF",
+                };
+            },
+        }));
+
+        await store.dispatch(
+            startRegister("test@mail.com", "jluis", "1234556")
+        );
+
+        const actions = store.getActions();
+
+        expect(actions[0]).toEqual({
+            type: types.authLogin,
+            payload: {
+                uid: "123",
+                name: "José",
+            },
+        });
+
+        expect(localStorage.setItem).toHaveBeenCalledWith("token", "ABC123DEF");
+        expect(localStorage.setItem).toHaveBeenCalledWith(
+            "token-init-date",
+            expect.any(Number)
+        );
+    });
+
+    test("Should dispatch correctly startChecking", async () => {
+        // We simulate te return of fetch function using a mock function return
+        fetchModule.fetchWithToken = jest.fn(() => ({
+            json() {
+                return {
+                    ok: true,
+                    uid: "123",
+                    name: "José",
+                    token: "ABC123DEF",
+                };
+            },
+        }));
+
+        await store.dispatch(startChecking());
+
+        const actions = store.getActions();
+
+        expect(actions[0]).toEqual({
+            type: types.authLogin,
+            payload: {
+                uid: "123",
+                name: "José",
+            },
+        });
+
+        expect(localStorage.setItem).toHaveBeenCalledWith("token", "ABC123DEF");
+        expect(localStorage.setItem).toHaveBeenCalledWith(
+            "token-init-date",
+            expect.any(Number)
         );
     });
 });
